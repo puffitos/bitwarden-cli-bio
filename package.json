@@ -5,7 +5,8 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "bwbio": "dist/index.js"
+    "bwbio": "dist/index.js",
+    "bwbio-wsl-bridge": "scripts/bwbio-wsl-bridge.sh"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
@@ -36,7 +37,8 @@
     "url": "https://github.com/jeanregisser/bitwarden-cli-bio/issues"
   },
   "files": [
-    "dist"
+    "dist",
+    "scripts"
   ],
   "license": "MIT",
   "engines": {

@@ -95,6 +95,16 @@ Everything else triggers biometric unlock if the vault is locked.
 
 ## Troubleshooting
 
+### `Failed to connect to desktop app from WSL2`
+
+`bwbio` detected it is running in WSL2 but could not find the socat bridge socket. Follow the [WSL2 setup](#wsl2-setup) instructions above to start the bridge.
+
+Run with verbose logs to see which socket paths were tried:
+
+```bash
+BWBIO_VERBOSE=true bwbio unlock
+```
+
 ### `Failed to connect to desktop app` / socket `ENOENT`
 
 If verbose logs show connection attempts to `.../s.bw` failing with `ENOENT`, `bwbio` cannot find the Desktop IPC socket.
@@ -112,8 +122,40 @@ BWBIO_VERBOSE=true bwbio unlock
 - **macOS** — Touch ID (including App Store builds) — tested
 - **Windows** — Windows Hello — tested (community)
 - **Linux** — Polkit — should work, not yet tested
+- **WSL2** — Windows Hello via socat bridge — see below
 
 The IPC protocol is the same across platforms. If you try Linux, please [open an issue](https://github.com/jeanregisser/bitwarden-cli-bio/issues) and let us know how it goes!
+
+### WSL2 setup
+
+In WSL2, the Bitwarden Desktop app runs on the Windows host. Its IPC socket (a Windows named pipe) is not directly reachable from inside WSL2. You need to bridge it using `socat` and `npiperelay`.
+
+**Prerequisites:**
+
+1. [npiperelay](https://github.com/jstarks/npiperelay) installed on Windows (e.g. `winget install jstarks.npiperelay` or Scoop: `scoop install npiperelay`) and on the Windows `PATH`
+2. `socat` installed in WSL (`sudo apt install socat`)
+3. Bitwarden Desktop app running with "Allow browser integration" enabled
+
+**Start the bridge:**
+
+`bwbio` ships a helper script that handles everything:
+
+```bash
+bwbio-wsl-bridge          # start (idempotent)
+bwbio-wsl-bridge --status # check if running
+bwbio-wsl-bridge --stop   # stop it
+bwbio-wsl-bridge --pipe   # print the computed pipe name
+```
+
+Add it to `~/.bashrc` or `~/.profile` to auto-start each session:
+
+```bash
+bwbio-wsl-bridge
+```
+
+Once the bridge is running, `bwbio` will automatically find it and use Windows Hello.
+
+If `USERPROFILE` is not set in your WSL environment (common when not launched from Windows Terminal), the script falls back to scanning `/mnt/c/Users/` for your Windows username automatically.
 
 ## Supply chain trust
 

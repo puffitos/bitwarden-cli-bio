@@ -1,5 +1,6 @@
 import * as crypto from "node:crypto";
 import { BiometricsStatus, NativeMessagingClient } from "./ipc";
+import { IpcSocketService } from "./ipc/ipc-socket.service";
 import { log, logVerbose } from "./log";
 import { getActiveUserId } from "./session-storage";
 
@@ -7,6 +8,9 @@ import { getActiveUserId } from "./session-storage";
  * Get the platform-specific biometric method name.
  */
 function getBiometricMethodName(): string {
+  if (new IpcSocketService().isWSL()) {
+    return "Windows Hello";
+  }
   switch (process.platform) {
     case "darwin":
       return "Touch ID";
